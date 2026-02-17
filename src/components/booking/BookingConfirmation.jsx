@@ -1,7 +1,9 @@
 import React from 'react';
-import { FaCheckCircle, FaEnvelope, FaPrint, FaDownload } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaCheckCircle, FaEnvelope, FaPrint, FaDownload, FaHistory } from 'react-icons/fa';
 
 const BookingConfirmation = ({ bookingId, email, onClose }) => {
+    const navigate = useNavigate();
     const handlePrint = () => {
         window.print();
     };
@@ -74,11 +76,11 @@ const BookingConfirmation = ({ bookingId, email, onClose }) => {
                             <div className="flex flex-wrap gap-4 text-sm">
                                 <div>
                                     <span className="text-green-700 font-medium">Email:</span>
-                                    <span className="text-green-900 ml-2">support@example.com</span>
+                                    <span className="text-green-900 ml-2">support@magicweekends.com</span>
                                 </div>
                                 <div>
                                     <span className="text-green-700 font-medium">Phone:</span>
-                                    <span className="text-green-900 ml-2">+91-1234567890</span>
+                                    <span className="text-green-900 ml-2">+91 9011234179</span>
                                 </div>
                             </div>
                         </div>
@@ -91,7 +93,14 @@ const BookingConfirmation = ({ bookingId, email, onClose }) => {
                             className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                         >
                             <FaPrint />
-                            Print Confirmation
+                            Print
+                        </button>
+                        <button
+                            onClick={() => navigate('/my-bookings')}
+                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md"
+                        >
+                            <FaHistory />
+                            My Bookings
                         </button>
                         <button
                             onClick={onClose}

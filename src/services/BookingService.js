@@ -59,3 +59,12 @@ export const cancelBooking = async (id) => {
         throw error.response?.data || error.message;
     }
 };
+// Verify payment
+export const verifyPayment = async (paymentData) => {
+    try {
+        const response = await api.post('/Booking/verify-payment', paymentData);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

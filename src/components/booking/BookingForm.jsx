@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaTimes, FaCheckCircle, FaLock, FaShieldAlt } from 'react-icons/fa';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import BookingConfirmation from './BookingConfirmation';
-import { createBooking } from '../../services/BookingService';
+import { createBooking, verifyPayment } from '../../services/BookingService';
 
 const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
     const [currentStep, setCurrentStep] = useState(1);
@@ -123,6 +123,14 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
         return pricePerPerson * formData.number_of_people;
     };
 
+    const calculateToken = () => {
+        return Math.round(calculateTotal() * 0.10);
+    };
+
+    const calculateBalance = () => {
+        return calculateTotal() - calculateToken();
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -135,7 +143,7 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
             }
 
             const bookingData = new FormData();
-            
+
             bookingData.append('trip_id', tripData.id);
             bookingData.append('trip_type', tripType);
             bookingData.append('full_name', formData.full_name);
@@ -167,19 +175,56 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
             const response = await createBooking(bookingData);
 
             if (response.success) {
-                setBookingId(response.data.id);
+                const { razorpay_order_id, razorpay_key_id, id: bookingId } = response.data;
+                setBookingId(bookingId);
 
-                // Open payment app based on selected method
-                if (formData.payment_method === 'paytm' || formData.payment_method === 'gpay') {
-                    openPaymentApp(formData.payment_method, calculateTotal(), response.data.id);
+                // Initialize Razorpay
+                const options = {
+                    key: razorpay_key_id,
+                    amount: Math.round(calculateTotal() * 100),
+                    currency: "INR",
+                    name: "Magic Weekends",
+                    description: `Booking for ${tripData?.title}`,
+                    order_id: razorpay_order_id,
+                    handler: async function (response) {
+                        setLoading(true);
+                        try {
+                            const verificationData = {
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                booking_id: bookingId
+                            };
 
-                    // Delay success popup slightly to let app open first
-                    setTimeout(() => {
-                        setBookingComplete(true);
-                    }, 1500);
-                } else {
-                    setBookingComplete(true);
-                }
+                            const verifyResponse = await verifyPayment(verificationData);
+
+                            if (verifyResponse.success) {
+                                setBookingComplete(true);
+                            }
+                        } catch (error) {
+                            console.error('Payment verification error:', error);
+                            alert('Payment verification failed. Please contact support.');
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                    prefill: {
+                        name: formData.full_name,
+                        email: formData.email,
+                        contact: formData.phone
+                    },
+                    theme: {
+                        color: "#EAB308" // yellow-500
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setLoading(false);
+                        }
+                    }
+                };
+
+                const rzp = new window.Razorpay(options);
+                rzp.open();
             }
         } catch (error) {
             console.error('Booking error:', error);
@@ -189,48 +234,6 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
         }
     };
 
-    const openPaymentApp = (method, amount, bookingId) => {
-        // UPI ID - Replace with your actual UPI ID
-        const upiId = 'yourbusiness@paytm';
-        const name = 'Your Travel Company';
-        const transactionNote = `Booking #${bookingId}`;
-
-        // Check if on mobile
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        if (!isMobile) {
-            // Desktop fallback - Open website
-            if (method === 'paytm') {
-                window.open('https://paytm.com/', '_blank');
-            } else if (method === 'gpay') {
-                window.open('https://pay.google.com/about/', '_blank');
-            }
-            return;
-        }
-
-        // Mobile Deep Links
-        const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-
-        if (method === 'paytm') {
-            // Paytm deep link
-            const paytmUrl = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-            window.location.href = paytmUrl;
-
-            // Fallback to generic UPI
-            setTimeout(() => {
-                window.location.href = upiUrl;
-            }, 1000);
-        } else if (method === 'gpay') {
-            // Google Pay deep link
-            const gpayUrl = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-            window.location.href = gpayUrl;
-
-            // Fallback to generic UPI
-            setTimeout(() => {
-                window.location.href = upiUrl;
-            }, 1000);
-        }
-    };
 
     if (!isOpen) return null;
 
@@ -589,16 +592,23 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
 
                             {/* Payment */}
                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <h4 className="font-semibold text-gray-900 mb-3">Payment Details</h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Payment Method:</span>
-                                        <span className="font-medium uppercase">{formData.payment_method}</span>
+                                <h4 className="font-semibold text-gray-900 mb-3">Payment Summary</h4>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Total Trip Amount:</span>
+                                        <span className="font-bold text-gray-900">₹{calculateTotal().toLocaleString()}</span>
                                     </div>
-                                    <div className="flex justify-between pt-2 border-t border-yellow-200">
-                                        <span className="text-lg font-bold text-gray-900">Total Amount:</span>
-                                        <span className="text-2xl font-bold text-yellow-600">
-                                            ₹{calculateTotal().toLocaleString()}
+                                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                                        <span className="">Remaining Balance:</span>
+                                        <span className="">- ₹{calculateBalance().toLocaleString()}</span>
+                                    </div>
+                                    <div className="pt-2 border-t border-yellow-200 flex justify-between items-center">
+                                        <div>
+                                            <p className="text-xs text-yellow-700 font-bold uppercase tracking-wider">Token Amount to Pay Now</p>
+                                            <p className="text-xs text-gray-500">(10% of total price)</p>
+                                        </div>
+                                        <span className="text-2xl font-black text-yellow-600">
+                                            ₹{calculateToken().toLocaleString()}
                                         </span>
                                     </div>
                                 </div>

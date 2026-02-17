@@ -119,38 +119,35 @@ const Header = ({ scrolled }) => {
       }}>
       <div className="max-w-full mx-auto flex flex-wrap justify-between items-center">
         {/* Left section with logo and phone */}
-        <div className="flex items-center">
-          <div className="flex items-center">
-            <img src={logo} alt="Magic Weekends" className="h-10 sm:h-12 w-10 sm:w-12 mr-2 sm:mr-3 rounded-full shadow-md" />
-            <h1 className={`text-lg sm:text-xl md:text-2xl font-bold ${scrolled ? 'text-white' : 'text-white'
-              }`}>MAGIC WEEKENDS</h1>
-            <div className={`hidden sm:flex items-center ml-2 sm:ml-4 ${scrolled ? 'text-gray-300' : 'text-white'
-              }`}>
-              <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-              </svg>
-              <span className="text-xs sm:text-sm font-medium">91 9011234179</span>
-            </div>
+        <div className="flex items-center flex-1">
+          <div className="flex items-center mr-4 lg:mr-8">
+            <img src={logo} alt="Magic Weekends" className="h-10 sm:h-12 w-10 sm:w-12 mr-2 sm:mr-3 rounded-full shadow-md cursor-pointer border-2 border-white/20" onClick={() => navigate('/')} />
+            <h1 className="text-lg sm:text-xl font-bold text-white cursor-pointer tracking-wider whitespace-nowrap" onClick={() => navigate('/')}>MAGIC WEEKENDS</h1>
           </div>
 
-          {/* Search bar - Hidden on mobile, visible on tablet and desktop */}
-          <div className="hidden md:block relative w-48 lg:w-56 xl:w-64 ml-4 sm:ml-6">
+          {/* Phone Number */}
+          <div className="hidden lg:flex items-center text-white mr-4 lg:mr-8 whitespace-nowrap">
+            <svg className="h-4 w-4 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+            <span className="text-sm font-bold tracking-tighter">91 9011234179</span>
+          </div>
+
+          {/* Search bar */}
+          <div className="hidden xl:block relative w-48 lg:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className={`h-5 w-5 ${scrolled ? 'text-gray-400' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
             </div>
             <input
               type="text"
-              className={`block w-full pl-10 pr-10 py-2 border rounded-full ${scrolled
-                ? 'bg-white/90 text-gray-900 placeholder-gray-600 border-gray-300 shadow-sm'
-                : 'bg-white/90 text-gray-900 placeholder-gray-500 border-gray-300'
-                } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm transition-all duration-300`}
+              className="block w-full pl-10 pr-10 py-1.5 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-xs sm:text-sm shadow-sm"
               placeholder={searchText || "Search destination..."}
             />
-            <button className="absolute inset-y-0 right-0 px-3 py-1 bg-yellow-500 text-gray-900 rounded-r-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors duration-300">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <button className="absolute inset-y-0 right-0 px-3 flex items-center bg-yellow-500 text-gray-900 rounded-r-full hover:bg-yellow-600 transition-colors">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </button>
@@ -177,13 +174,15 @@ const Header = ({ scrolled }) => {
 
           <a href="#weekend-trips" onClick={(e) => handleNavClick(e, 'weekend-trips')} className={`transition-all duration-300 font-medium relative group cursor-pointer ${scrolled ? 'text-white hover:text-yellow-300' : 'text-white'
             }`}>
-            <span className="text-sm lg:text-base">Weekends Trips</span>
+            <span className="text-sm lg:text-base whitespace-nowrap">Weekends Trips</span>
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-500 group-hover:w-full transition-all duration-300"></span>
           </a>
 
-          <a href="#contact" onClick={(e) => handleNavClick(e, 'contact')} className={`transition-all duration-300 font-medium relative group cursor-pointer ${scrolled ? 'text-white hover:text-yellow-300' : 'text-white'
+
+
+          <a onClick={() => navigate('/my-bookings')} className={`transition-all duration-300 font-medium relative group cursor-pointer ${scrolled ? 'text-white hover:text-yellow-300' : 'text-white'
             }`}>
-            <span className="text-sm lg:text-base">Contact</span>
+            <span className="text-sm lg:text-base">My Bookings</span>
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-500 group-hover:w-full transition-all duration-300"></span>
           </a>
         </nav>
@@ -291,12 +290,14 @@ const Header = ({ scrolled }) => {
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-500 group-hover:w-full transition-all duration-300"></span>
               </a>
 
-              <a href="#contact" onClick={(e) => handleNavClick(e, 'contact')} className="block text-white hover:text-yellow-400 transition-all duration-300 font-medium py-3 px-4 rounded-lg hover:bg-white/5 relative group overflow-hidden">
+
+
+              <a onClick={() => navigate('/my-bookings')} className="block text-white hover:text-yellow-400 transition-all duration-300 font-medium py-3 px-4 rounded-lg hover:bg-white/5 relative group overflow-hidden cursor-pointer">
                 <span className="relative z-10 flex items-center">
                   <svg className="h-5 w-5 mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M6 16h.01"></path>
                   </svg>
-                  Contact
+                  My Bookings
                 </span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-500 group-hover:w-full transition-all duration-300"></span>
               </a>
