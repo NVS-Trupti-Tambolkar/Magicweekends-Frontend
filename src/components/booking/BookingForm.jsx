@@ -124,7 +124,7 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
     };
 
     const calculateToken = () => {
-        return Math.round(calculateTotal() * 0.10);
+        return Math.round(calculateTotal() * 0.01);
     };
 
     const calculateBalance = () => {
@@ -181,8 +181,7 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
                 // Initialize Razorpay
                 const options = {
                     key: razorpay_key_id,
-                    amount: Math.round(calculateTotal() * 100),
-                    currency: "INR",
+                    amount: calculateToken() * 100, // Pay the 1% token amount matching backend order
                     name: "Magic Weekends",
                     description: `Booking for ${tripData?.title}`,
                     order_id: razorpay_order_id,
@@ -605,7 +604,7 @@ const BookingForm = ({ isOpen, onClose, tripData, tripType }) => {
                                     <div className="pt-2 border-t border-yellow-200 flex justify-between items-center">
                                         <div>
                                             <p className="text-xs text-yellow-700 font-bold uppercase tracking-wider">Token Amount to Pay Now</p>
-                                            <p className="text-xs text-gray-500">(10% of total price)</p>
+                                            <p className="text-xs text-gray-500">(1% of total price)</p>
                                         </div>
                                         <span className="text-2xl font-black text-yellow-600">
                                             ₹{calculateToken().toLocaleString()}

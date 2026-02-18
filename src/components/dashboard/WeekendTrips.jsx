@@ -230,11 +230,11 @@ const WeekendTrips = () => {
                 // Save Itineraries
                 if (newTrip.itineraries.length > 0) {
                     try {
-                        // For edit, we might want to delete existing ones first if the API doesn't handle sync.
-                        // But the prompt says "when we submit call /Itineraries/insertItineraries".
-                        // Backend insertItineraries appends. Let's assume we want to replace or the backend handles sync.
-                        // If it's edit, we might need a separate logic or the backend might need to be adjusted.
-                        // However, staying simple as requested.
+                        // If it's an edit, delete existing ones first for a clean update
+                        if (isEditing) {
+                            await api.delete(`/Itineraries/deleteByTrip?trip_id=${tripId}`);
+                        }
+
                         await api.post('/Itineraries/itineraries', {
                             trip_id: tripId,
                             itineraries: newTrip.itineraries

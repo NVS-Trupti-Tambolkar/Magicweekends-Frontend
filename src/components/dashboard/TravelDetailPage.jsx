@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../../services/Axios';
-import { FaStar, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaUsers, FaCheck, FaArrowLeft, FaShareAlt, FaHeart, FaPhone, FaEnvelope, FaFacebook, FaInstagram, FaTwitter, FaArrowRight, FaArrowLeft as FaLeftArrow, FaExpand, FaTimes, FaUtensils, FaBed, FaEdit, FaChevronUp, FaChevronDown } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaUsers, FaCheck, FaArrowLeft, FaShareAlt, FaHeart, FaPhone, FaEnvelope, FaFacebook, FaInstagram, FaTwitter, FaArrowRight, FaArrowLeft as FaLeftArrow, FaExpand, FaTimes, FaUtensils, FaBed, FaEdit, FaChevronUp, FaChevronDown, FaPlus, FaTrash } from 'react-icons/fa';
 import Header from '../header/Header';
 import Footer from '../footer/Footer';
 import { PageLoader } from '../common/LoadingSpinner';
@@ -275,25 +275,66 @@ const TravelDetailPage = () => {
     setShowItineraryModal(true);
   };
 
+  const handleAddItinerary = () => {
+    const nextDay = travelPackage.itinerary.length + 1;
+    setEditingItinerary({
+      id: null,
+      day: nextDay,
+      title: '',
+      description: '',
+      activities: [],
+      meals: '',
+      accommodation: ''
+    });
+    setShowItineraryModal(true);
+  };
+
   const handleItineraryUpdate = async (updatedItinerary) => {
     try {
-      const response = await api.put('/Itineraries/updateItinerary', updatedItinerary);
+      let response;
+      if (updatedItinerary.id) {
+        // Update existing
+        response = await api.put('/Itineraries/updateItinerary', updatedItinerary);
+      } else {
+        // Add new
+        // The backend insertItineraries expects an array of itineraries
+        response = await api.post('/Itineraries/itineraries', {
+          trip_id: id,
+          itineraries: [{
+            day_number: updatedItinerary.day_number,
+            day_title: updatedItinerary.day_title,
+            description: updatedItinerary.description,
+            meals: updatedItinerary.meals,
+            accommodation: updatedItinerary.accommodation,
+            activities: updatedItinerary.activities
+          }]
+        });
+      }
+
       if (response.data.success) {
-        alert('Itinerary updated successfully!');
+        alert(updatedItinerary.id ? 'Itinerary updated successfully!' : 'Itinerary added successfully!');
         setShowItineraryModal(false);
         setEditingItinerary(null);
-        // Refresh trip details to show updated itinerary
-        // You might definitely want to refactor fetchTripDetails to be callable here, 
-        // or just update local state if possible. For now, let's reload or re-fetch.
-        // Re-fetching is better.
-        // Since fetchTripDetails is inside useEffect, we can't call it directly unless we extract it.
-        // For now, triggering a reload or dependency update might be tricky without extraction.
-        // Let's rely on window.location.reload() for a quick fix or better, extract fetchTripDetails.
         window.location.reload();
       }
     } catch (error) {
-      console.error('Error updating itinerary:', error);
-      alert('Failed to update itinerary.');
+      console.error('Error saving itinerary:', error);
+      alert('Failed to save itinerary.');
+    }
+  };
+
+  const handleDeleteItinerary = async (itineraryId) => {
+    if (window.confirm('Are you sure you want to delete this itinerary day?')) {
+      try {
+        const response = await api.delete(`/Itineraries/deleteItinerary?itinerary_id=${itineraryId}`);
+        if (response.data.success) {
+          alert('Itinerary deleted successfully!');
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Error deleting itinerary:', error);
+        alert('Failed to delete itinerary.');
+      }
     }
   };
 
@@ -353,15 +394,24 @@ const TravelDetailPage = () => {
             <span className="text-yellow-600 font-bold text-xs tracking-widest uppercase">Day {day.day}</span>
             <h4 className="text-base font-bold text-gray-900">{day.title}</h4>
           </div>
-          <button
-            className="text-gray-400 hover:text-yellow-600 transition-colors p-1"
-            title="Edit Itinerary"
-            onClick={() => handleEditItinerary(day)}
-          >
-            <FaEdit className="w-4 h-4" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              className="text-gray-400 hover:text-yellow-600 transition-colors p-1"
+              title="Edit Itinerary"
+              onClick={() => handleEditItinerary(day)}
+            >
+              <FaEdit className="w-4 h-4" />
+            </button>
+            <button
+              className="text-gray-400 hover:text-red-600 transition-colors p-1"
+              title="Delete Itinerary"
+              onClick={() => handleDeleteItinerary(day.id)}
+            >
+              <FaTrash className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <p className="text-gray-600 text-xs mb-2">{day.activities.join(' • ')}</p>
+        <p className="text-gray-600 text-xs mb-2">{Array.isArray(day.activities) ? day.activities.join(' • ') : day.activities}</p>
         <div className="flex gap-4 text-[10px] text-gray-500">
           {day.meals && <span className="flex items-center"><FaUtensils className="mr-1 text-yellow-500" /> {day.meals}</span>}
           {day.accommodation && <span className="flex items-center"><FaBed className="mr-1 text-yellow-500" /> {day.accommodation}</span>}
@@ -517,7 +567,16 @@ const TravelDetailPage = () => {
                 {/* Itinerary Tab */}
                 {activeTab === 'itinerary' && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Itinerary</h3>
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg font-bold text-gray-900">Itinerary</h3>
+                      <button
+                        onClick={handleAddItinerary}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all"
+                      >
+                        <FaPlus className="w-3 h-3" />
+                        Add Day
+                      </button>
+                    </div>
                     <div className="">
                       {travelPackage.itinerary.map((day, index) => (
                         <ItineraryDay key={index} day={day} />
@@ -1006,7 +1065,7 @@ const ItineraryEditModal = ({ itinerary, onClose, onUpdate }) => {
     <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-[100] p-2 sm:p-4">
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-lg overflow-hidden animate-fadeIn max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-3 sm:p-4 border-b border-yellow-300 flex justify-between items-center">
-          <h3 className="text-base sm:text-lg font-bold text-gray-900">Edit Itinerary Day {formData.day_number}</h3>
+          <h3 className="text-base sm:text-lg font-bold text-gray-900">{formData.id ? 'Edit' : 'Add'} Itinerary Day {formData.day_number}</h3>
           <button onClick={onClose} className="text-black/50 hover:text-black bg-white/30 rounded-full p-1 transition-colors">
             <FaTimes />
           </button>
@@ -1078,7 +1137,7 @@ const ItineraryEditModal = ({ itinerary, onClose, onUpdate }) => {
               type="submit"
               className="px-4 py-2 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-600 shadow-md transition-all transform hover:scale-105"
             >
-              Update Itinerary
+              {formData.id ? 'Update Itinerary' : 'Add Itinerary'}
             </button>
           </div>
         </form>

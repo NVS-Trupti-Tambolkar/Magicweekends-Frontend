@@ -313,6 +313,11 @@ const ExploreWithUs = () => {
                 // Save Itineraries
                 if (newDestination.itineraries.length > 0) {
                     try {
+                        // If it's an edit, delete existing ones first for a clean update
+                        if (isEditing) {
+                            await api.delete(`/Itineraries/deleteByTrip?trip_id=${tripId}`);
+                        }
+
                         await api.post('/Itineraries/itineraries', {
                             trip_id: tripId,
                             itineraries: newDestination.itineraries
