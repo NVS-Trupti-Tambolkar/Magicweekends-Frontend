@@ -47,17 +47,23 @@ const TravelDetailPage = () => {
 
           let imageUrl = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
 
-          // Fetch image if exists
+          // Fetch image if exists - use directly if it's already a URL (Cloudinary)
           if (tripData.uploadimage) {
-            try {
-              const filePath = tripData.uploadimage.startsWith('/') ? tripData.uploadimage.slice(1) : tripData.uploadimage;
-              const imageResponse = await api.get(
-                `/Trip/getFilepath?filePath=${encodeURIComponent(filePath)}`,
-                { responseType: 'blob' }
-              );
-              imageUrl = URL.createObjectURL(imageResponse.data);
-            } catch (imgErr) {
-              console.error('Error fetching image:', imgErr);
+            if (tripData.uploadimage.startsWith('http://') || tripData.uploadimage.startsWith('https://')) {
+              // Already a full URL (Cloudinary)
+              imageUrl = tripData.uploadimage;
+            } else {
+              // Local file path - fetch via API
+              try {
+                const filePath = tripData.uploadimage.startsWith('/') ? tripData.uploadimage.slice(1) : tripData.uploadimage;
+                const imageResponse = await api.get(
+                  `/Trip/getFilepath?filePath=${encodeURIComponent(filePath)}`,
+                  { responseType: 'blob' }
+                );
+                imageUrl = URL.createObjectURL(imageResponse.data);
+              } catch (imgErr) {
+                console.error('Error fetching image:', imgErr);
+              }
             }
           }
 
@@ -147,12 +153,18 @@ const TravelDetailPage = () => {
           const images = response.data.data;
           setGalleryImages(images);
 
-          // Fetch blobs for each image
+          // Fetch blobs for each image - use directly if already a URL
           images.forEach(async (img) => {
             try {
-              const res = await api.get(`/Trip/getFilepath?filePath=${encodeURIComponent(img.image_url)}`, { responseType: 'blob' });
-              const blobUrl = URL.createObjectURL(res.data);
-              setGalleryBlobs(prev => ({ ...prev, [img.image_url]: blobUrl }));
+              if (img.image_url && (img.image_url.startsWith('http://') || img.image_url.startsWith('https://'))) {
+                // Already a full URL (Cloudinary) - use directly
+                setGalleryBlobs(prev => ({ ...prev, [img.image_url]: img.image_url }));
+              } else {
+                // Local file path - fetch via API
+                const res = await api.get(`/Trip/getFilepath?filePath=${encodeURIComponent(img.image_url)}`, { responseType: 'blob' });
+                const blobUrl = URL.createObjectURL(res.data);
+                setGalleryBlobs(prev => ({ ...prev, [img.image_url]: blobUrl }));
+              }
             } catch (err) {
               console.error('Error fetching gallery image blob:', err);
             }

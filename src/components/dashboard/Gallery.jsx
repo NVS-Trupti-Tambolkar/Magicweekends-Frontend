@@ -91,6 +91,13 @@ const Gallery = () => {
         const imagePromises = uniquePaths.map(async (path) => {
             try {
                 if (galleryImages[path]) return { path, blobUrl: galleryImages[path] };
+                
+                // Use directly if already a URL (Cloudinary)
+                if (path.startsWith('http://') || path.startsWith('https://')) {
+                    return { path, blobUrl: path };
+                }
+                
+                // Local file path - fetch via API
                 const normalizedPath = path.replace(/\\/g, '/');
                 const response = await api.get(
                     `/Trip/getFilepath?filePath=${encodeURIComponent(normalizedPath)}`,

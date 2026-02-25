@@ -50,19 +50,22 @@ const ExploreWithUs = () => {
             if (response.data.success) {
                 const tripData = response.data.data;
 
-                // Fetch images for each trip as blobs
+                // Fetch images for each trip - use directly if already a URL (Cloudinary)
                 const imagePromises = tripData.map(async (trip) => {
                     const id = trip.id;
                     const imagePath = trip.uploadimage;
 
                     if (imagePath) {
+                        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+                            // Already a full URL (Cloudinary)
+                            return { id, imageUrl: imagePath };
+                        }
+                        // Local file path - fetch via API
                         try {
                             const filePath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
                             const imageResponse = await api.get(
                                 `/Trip/getFilepath?filePath=${encodeURIComponent(filePath)}`,
-                                {
-                                    responseType: 'blob'
-                                }
+                                { responseType: 'blob' }
                             );
                             const imageUrl = URL.createObjectURL(imageResponse.data);
                             return { id, imageUrl };
