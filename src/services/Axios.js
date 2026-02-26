@@ -3,9 +3,10 @@ import { jwtDecode } from "jwt-decode";
 
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:4000', // Replace with your API URL
-  // baseURL: 'https://magicweekends-api.onrender.com',
-  // baseURL: 'https://nbsapi.noviusrailtech.com/', // Replace with your API URL
+  baseURL: process.env.REACT_APP_API_URL // Replace with your API URL
+  // baseURL: "http://localhost:4000", // Replace with your API URL
+  // baseURL: "https://magicweekends-api.onrender.com", // Replace with your API URL
+ 
 });
 
 // Function to check if the token is expired  

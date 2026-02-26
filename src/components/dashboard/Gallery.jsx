@@ -16,7 +16,6 @@ const Gallery = () => {
     const [isEditingSingle, setIsEditingSingle] = useState(false);
     const [editingImage, setEditingImage] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(1);
-    const API_BASE_URL = 'http://localhost:4000/';
     const scrollContainerRef = useRef(null);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [isMobile, setIsMobile] = useState(false);
